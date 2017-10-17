@@ -2,3 +2,6 @@ config.json
 tenc
 node_modules
 workspace.xml
+*.vbs
+*.lnk
+.env

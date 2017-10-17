@@ -1,7 +1,7 @@
 var util = require("util");
 var fs = require('fs');
 
-var config = JSON.parse(fs.readFileSync("config.json"));
+var config = require("./EnvConfig");
 var output = require("./Output");
 var pipes = require("./PipesHelper");
 var Discord = require('discord.io');
@@ -54,8 +54,9 @@ var DiscordHelper =
 			this.isConnected = false;
 		}
 	},
-	SendMessage : function(pipe, message, sender)
+	SendMessage : function(pipe, message, sender, additionalContent)
 	{
+
 		var discordMessage = "";
 		
 		//if(pipe.lastDiscordSender != null)
@@ -66,7 +67,7 @@ var DiscordHelper =
 
 		discordMessage += message;
 		
-		output.write("DISCORD: (" + pipe.name + ") " + discordMessage);
+		output.write("DISCORD: (" + pipe.name + ") " + discordMessage + " additionalContent: " + (additionalContent != false));
 		
 		if(DiscordHelper.isConnected)
 		{
@@ -96,6 +97,45 @@ var DiscordHelper =
 				);
 				pipe.lastDiscordSender = sender;
 				output.write("SENT!\n");
+
+				if(additionalContent) {
+					output.write("Parsing additional content");
+
+					additionalContent.forEach(function(contentData, index) {
+							
+						if(!contentData.success) return; // Skip data that couldn't be fully retrieved
+
+						output.write("contentData.fileName: " + contentData.fileName + "\n");
+						output.write("contentData.content.type: " + contentData.content.type + "\n");
+						//output.write("contentData.content.buffer: " + contentData.content.buffer + "\n");
+
+						DiscordHelper.discord.uploadFile(
+						{
+							to: pipe.discordId,
+							file: contentData.content.buffer,
+							filename: contentData.fileName
+						},
+						function(err, response)
+						{
+							if(DiscordHelper.debug)
+							{
+								output.write("UPLOAD FILE DISCORD:\n");
+								output.write(response);
+							}
+							if(err)
+							{
+								output.write("UPLOAD FILE FAILED! Error:\n");
+								output.write(err);
+								output.write("\n");
+							}
+						})
+
+					});
+
+					
+
+
+				}
 			}
 			catch(err)
 			{
@@ -116,7 +156,7 @@ var DiscordHelper =
 	},
 	discordMessageReceived : function(user, userID, channelID, message, rawEvent)
 	{
-		if(user != config.discord_username)
+		if(userID != DiscordHelper.discord.id) // If not sent by the bot
 		{
 			var pipe = pipes.getPipe({ discordId: channelID });
 			if(pipe != null)

@@ -1,5 +1,5 @@
 var fs = require('fs');
-var config = JSON.parse(fs.readFileSync("config.json"));
+var config = require("./EnvConfig");
 var output = require("./Output");
 
 var PipesHelper = 
