@@ -14,7 +14,7 @@
     "foreman": "2.0.0",
     "markdown": "^0.5.0",
     "skyweb": "https://github.com/clindell/skyweb/tarball/master",
-    "to-markdown": "^3.0.3"
+    "to-markdown": "3.1.1"
   },
   "preferGlobal": false,
   "private": true,
